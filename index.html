@@ -667,13 +667,24 @@ const bacaLRC = t => (t || '').split('\n').map(b => {
 }).filter(x => x && x.k);
 let lirikLagu = '', lirikBaris = [], lirikPilih = -1;
 
+// ponytail: coba lrclib langsung dulu; kalau HP-nya keblokir/DNS, lewat API kita (pasti lolos)
+async function cariLirikAwan(q) {
+  try {
+    const r = await fetch('https://lrclib.net/api/search?q=' + q);
+    if (r.ok) return await r.json();
+  } catch (e) { /* lanjut ke cadangan */ }
+  try {
+    const r2 = await fetch(API_YT + '/lirik?q=' + q);
+    return r2.ok ? await r2.json() : [];
+  } catch (e) { return []; }
+}
 async function ambilLirik(l) {
   if (!l || lirikLagu === l.id) return;
   lirikLagu = l.id; lirikBaris = []; lirikPilih = -1;
   $('#lirik-box').innerHTML = '<div class="kosong2">Mencari lirik…</div>';
   try {
     const q = encodeURIComponent(((l.artis || '') + ' ' + bersihJudul(l.judul)).trim());
-    const arr = await (await fetch('https://lrclib.net/api/search?q=' + q)).json();
+    const arr = await cariLirikAwan(q);
     if (lirikLagu !== l.id) return;                       // keburu ganti lagu
     const d = arr.find(x => x.syncedLyrics) || arr.find(x => x.plainLyrics);
     if (!d) { $('#lirik-box').innerHTML = '<div class="kosong2">Lirik belum ada di lrclib ✗</div>'; return; }
@@ -902,6 +913,14 @@ $('#b-penuh').addEventListener('click', () => {
 });
 $('.kiri').addEventListener('click', () => { if (lagu[putarSekarang] || ytSekarang.id) $('#penuh').classList.add('aktif'); });
 $('#f-lirik').addEventListener('click', () => $('#penuh').classList.toggle('lirik'));
+// Esc: tutup panel pencarian (atau layar Now Playing)
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const ddBuka = $('#dd').classList.contains('aktif');
+  const penuhBuka = $('#penuh').classList.contains('aktif');
+  if (ddBuka) { tutupDd(); $('#kotak-cari').blur(); }
+  if (penuhBuka) $('#penuh').classList.remove('aktif');
+});
 $('#penuh-tutup').addEventListener('click', () => $('#penuh').classList.remove('aktif'));
 $('#tombol-lanjut').addEventListener('click', () => {
   const i = lagu.findIndex(l => l.id === setelan.terakhir);
