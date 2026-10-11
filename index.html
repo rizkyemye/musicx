@@ -210,6 +210,7 @@ img{display:block}
   .panggung .tutup-x{top:auto;right:12px;bottom:calc(100% - 34px);width:34px;height:34px;border-radius:50%;
     background:rgba(0,0,0,.55);display:grid;place-items:center;font-size:16px}
   .panggung .tutup2{margin-bottom:calc(14px + env(safe-area-inset-bottom))}
+  .dd{max-height:min(44vh,320px)}
 }
 }
 </style>
@@ -780,16 +781,29 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') tutupDd(); });
 
 /* satu pintu pencarian: tanya API YouTube Music, hasilnya jadi daftar yang bisa diputar */
+const cacheCari = new Map();          // pencarian yang sama = instan
 async function cariLagu(kata) {
   kata = (kata || '').trim();
-  if (!kata) { $('#bagian-hasil').style.display = 'none'; return; }
+  if (!kata) { $('#bagian-hasil').style.display = 'none'; tutupDd(); return; }
+  if (cacheCari.has(kata.toLowerCase())) {      // sudah pernah dicari -> langsung
+    lagu = cacheCari.get(kata.toLowerCase());
+    $('#bagian-hasil').style.display = '';
+    $('#judul-hasil').textContent = 'Hasil pencarian: ' + kata;
+    $('#jumlah-lagu').textContent = lagu.length + ' lagu';
+    $('#semua').innerHTML = lagu.map((l, i) => kartuLagu(i, l, '♪', l.artis + (l.album ? ' · ' + l.album : ''))).join('');
+    tayangDd(lagu);
+    return;
+  }
   $('#bagian-hasil').style.display = '';
   $('#judul-hasil').textContent = 'Hasil pencarian: ' + kata;
   $('#semua').innerHTML = '<div class="kosong">Mencari…</div>';
+  $('#dd').innerHTML = '<div class="kosong2">Mencari…</div>';   // kasih tanda langsung, jangan diam
+  $('#dd').classList.add('aktif');
   try {
     const r = await fetch(API_YT + '/cari?q=' + encodeURIComponent(kata) + '&n=24');
     const d = await r.json();
     lagu = (d.hasil || []).filter(x => x.id);
+    cacheCari.set(kata.toLowerCase(), lagu);
     if (!lagu.length) { $('#semua').innerHTML = '<div class="kosong"><b>Nggak ketemu ✗</b>Coba kata lain ✓</div>'; return; }
     $('#jumlah-lagu').textContent = lagu.length + ' lagu';
     $('#semua').innerHTML = lagu.map((l, i) => kartuLagu(i, l, '♪', l.artis + (l.album ? ' · ' + l.album : ''))).join('');
