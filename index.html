@@ -192,7 +192,6 @@ img{display:block}
       <button data-hal="beranda" class="aktif">🏠 Beranda</button>
       <button data-hal="telusuri">🔎 Telusuri</button>
       <button data-hal="pustaka">📚 Pustaka musik</button>
-      <button data-hal="youtube">▶️ YouTube Music</button>
       <button data-hal="suka">❤️ Lagu disukai</button>
     </nav>
     <div class="judul-kecil">Playlist</div>
@@ -223,19 +222,6 @@ img{display:block}
         <div class="sampul" id="hero-sampul">♪</div>
       </div>
 
-      <!-- youtube -->
-      <div class="bagian" id="bagian-yt" style="display:none">
-        <div class="bagian">
-          <h2 style="margin-bottom:12px">Cari di YouTube Music</h2>
-          <div class="yt-cari">
-            <input id="yt-kata" placeholder="Ketik judul lagu atau nama artis…">
-            <button id="yt-tombol">Cari</button>
-          </div>
-          <p class="yt-info">Hasil dari <b>ytmusicapi</b> ✓ Diputar lewat player resmi YouTube ✓</p>
-        </div>
-        <div class="daftar" id="yt-hasil"></div>
-      </div>
-
       <!-- playlist -->
       <div class="bagian">
         <div class="kepala"><h2>Playlist untuk hari ini!</h2><button data-hal="pustaka">Lihat semua</button></div>
@@ -258,6 +244,17 @@ img{display:block}
       <div class="bagian">
         <div class="kepala"><h2>Semua lagu</h2><span style="margin-left:auto;color:var(--lembut);font-size:13px" id="jumlah-lagu"></span></div>
         <div class="daftar" id="semua"></div>
+      </div>
+
+      <!-- youtube (bagian dari Pustaka musik) -->
+      <div class="bagian" id="bagian-yt">
+        <div class="kepala"><h2>🎧 YouTube Music</h2></div>
+        <div class="yt-cari">
+          <input id="yt-kata" placeholder="Ketik judul lagu atau nama artis…">
+          <button id="yt-tombol">Cari</button>
+        </div>
+        <p class="yt-info">Hasil dari <b>ytmusicapi</b> ✓ Diputar lewat player resmi YouTube ✓</p>
+        <div class="daftar" id="yt-hasil"></div>
       </div>
     </div>
   </main>
@@ -300,7 +297,6 @@ img{display:block}
   <button data-hal="beranda" class="aktif"><span class="gbr">🏠</span>Beranda</button>
   <button data-hal="telusuri"><span class="gbr">🔎</span>Telusuri</button>
   <button data-hal="pustaka"><span class="gbr">📚</span>Pustaka</button>
-  <button data-hal="youtube"><span class="gbr">▶️</span>YouTube</button>
   <button data-hal="suka"><span class="gbr">❤️</span>Disukai</button>
 </nav>
 
@@ -373,6 +369,7 @@ let playlist = [];        // [{nama, isi:[id]}]
 let riwayat = [];         // [id]
 let daftarPutar = {};     // id -> jumlah diputar
 let setelan = { vol: 90, terakhir: null };
+let ytSekarang = { id: '', judul: '', artis: '', gambar: '' };   // lagu YouTube yang lagi diputar
 
 /* ---------- util ---------- */
 const detikKe = s => (isNaN(s) || s === Infinity) ? '0:00' : Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
@@ -516,6 +513,7 @@ function susunAntrian(mulai) {
 }
 function putarIndeks(i) {
   if (!lagu[i]) return;
+  ytSekarang = { id: '', judul: '', artis: '', gambar: '' };
   putarSekarang = i;
   const l = lagu[i];
   AUDIO.src = l.url;
@@ -631,10 +629,12 @@ function render() {
 function renderPemutar() {
   const l = lagu[putarSekarang];
   const main = !AUDIO.paused && l;
-  $('#p-judul').textContent = l ? l.judul : 'Belum ada lagu';
-  $('#p-artis').textContent = l ? l.artis : 'Tekan ＋ buat nambah musik';
-  $('#p-sampul').innerHTML = l && l.gambar ? '<img src="' + l.gambar + '">' : '♪';
-  $('#p-sampul').style.background = l && l.gambar ? '' : (l ? acakWarna(l.id) : '');
+  const ytAktif = !l && ytSekarang.judul;
+  $('#p-judul').textContent = l ? l.judul : (ytAktif ? ytSekarang.judul : 'Belum ada lagu');
+  $('#p-artis').textContent = l ? l.artis : (ytAktif ? ytSekarang.artis + ' · diputar di player YouTube ✓' : 'Tekan ＋ buat nambah musik');
+  $('#p-sampul').innerHTML = (l && l.gambar) ? '<img src="' + l.gambar + '">'
+    : (ytAktif && ytSekarang.gambar ? '<img src="' + ytSekarang.gambar + '">' : (ytAktif ? '▶' : '♪'));
+  $('#p-sampul').style.background = ((l && l.gambar) || (ytAktif && ytSekarang.gambar)) ? '' : (l ? acakWarna(l.id) : '');
   $('#b-putar').textContent = main ? '⏸' : '▶';
   $('#f-putar').textContent = main ? '⏸' : '▶';
   if (l) {
@@ -675,7 +675,7 @@ document.addEventListener('click', e => {
     $$('[data-hal]').forEach(b => b.classList.toggle('aktif', b.dataset.hal === hal.dataset.hal));
     if (hal.dataset.hal === 'suka') { $('#kotak-cari').value = ''; render(); alert('Lagu disukai: ' + disukai.size + ' lagu'); }
     if (hal.dataset.hal === 'telusuri') { $('#kotak-cari').focus(); }
-    if (hal.dataset.hal === 'pustaka') { $('#kotak-cari').value = ''; render(); window.scrollTo({ top: document.body.scrollHeight }); }
+    if (hal.dataset.hal === 'pustaka') { $('#kotak-cari').value = ''; render(); $('#bagian-yt').scrollIntoView({ behavior: 'smooth' }); $('#yt-kata').focus(); }
     return;
   }
   const pl = e.target.closest('[data-playlist]');
@@ -759,14 +759,6 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---------- tab YouTube (pakai API ytmusicapi) ---------- */
-function tampilkanYT(aktif) {
-  $('#bagian-yt').style.display = aktif ? '' : 'none';
-  $$('.pad > *').forEach(el => {
-    if (el.id === 'bagian-yt') return;
-    el.style.display = aktif ? 'none' : '';
-  });
-  if (aktif) $('#yt-kata').focus();
-}
 async function cariYT() {
   const kata = $('#yt-kata').value.trim();
   if (!kata) return;
@@ -776,7 +768,8 @@ async function cariYT() {
     const d = await r.json();
     if (!d.hasil || !d.hasil.length) { $('#yt-hasil').innerHTML = '<div class="kosong">Nggak ketemu ✗</div>'; return; }
     $('#yt-hasil').innerHTML = d.hasil.map(x =>
-      '<button class="lagu" data-yt="' + esc(x.id) + '">'
+      '<button class="lagu" data-yt="' + esc(x.id) + '" data-yt-judul="' + esc(x.judul)
+      + '" data-yt-artis="' + esc(x.artis) + '" data-yt-gambar="' + esc(x.gambar) + '">'
       + '<div class="sampul">' + (x.gambar ? '<img src="' + esc(x.gambar) + '" alt="" loading="lazy">' : '▶️')
       + (x.detik ? '<span class="badge">' + detikKe(x.detik) + '</span>' : '') + '</div>'
       + '<b>' + esc(x.judul) + '</b><span>' + esc(x.artis) + (x.album ? ' · ' + esc(x.album) : '') + '</span></button>').join('');
@@ -786,7 +779,9 @@ async function cariYT() {
       + '<button class="tombol-putar" id="atur-api" style="margin:0 auto">Set API</button></div>';
   }
 }
-function bukaPanggung(id) {
+function bukaPanggung(id, judul, artis, gambar) {
+  ytSekarang = { id: id, judul: judul || '', artis: artis || '', gambar: gambar || '' };
+  renderPemutar();                                   // bar bawah ikut nampilin lagunya
   $('#yt-frame').src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0';
   $('#panggung-buka').onclick = () => window.open('https://music.youtube.com/watch?v=' + id, '_blank');
   $('#panggung').classList.add('aktif');
@@ -806,10 +801,7 @@ document.addEventListener('click', e => {
     return;
   }
   const yt = e.target.closest('[data-yt]');
-  if (yt) bukaPanggung(yt.dataset.yt);
-  if (e.target.closest('[data-hal="youtube"]')) tampilkanYT(true);
-  const lain = e.target.closest('[data-hal]:not([data-hal="youtube"])');
-  if (lain) tampilkanYT(false);
+  if (yt) bukaPanggung(yt.dataset.yt, yt.dataset.ytJudul, yt.dataset.ytArtis, yt.dataset.ytGambar);
 });
 
 /* ---------- mode pratinjau (buat ngetes, ?demo=1) ---------- */
