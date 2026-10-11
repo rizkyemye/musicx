@@ -175,7 +175,8 @@ img{display:block}
 .panggung{position:fixed;inset:0;z-index:90;background:rgba(5,0,12,.88);display:none;
   flex-direction:column;align-items:center;justify-content:center;padding:18px;gap:14px}
 .panggung.aktif{display:flex}
-.panggung iframe{width:min(960px,94vw);aspect-ratio:16/9;border:0;border-radius:16px;background:#000}
+.panggung #yt-frame, .panggung #yt-frame iframe{width:min(960px,94vw);aspect-ratio:16/9;border:0;
+  border-radius:16px;background:#000;display:block}
 .panggung .tutup2{align-self:center;background:var(--panel);border:1px solid var(--garis);border-radius:999px;
   padding:11px 22px;font-weight:700}
 .panggung .tutup-x{position:absolute;top:16px;right:20px;font-size:22px}
@@ -335,11 +336,12 @@ img{display:block}
 
 <div class="panggung" id="panggung">
   <button class="tutup-x" id="panggung-tutup">✕</button>
-  <iframe id="yt-frame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+  <div id="yt-frame"></div>
   <button class="tutup2" id="panggung-buka">Buka di YouTube</button>
 </div>
 
 <audio id="audio" preload="metadata"></audio>
+<script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
 /* =====================================================================
@@ -370,6 +372,8 @@ let riwayat = [];         // [id]
 let daftarPutar = {};     // id -> jumlah diputar
 let setelan = { vol: 90, terakhir: null };
 let ytSekarang = { id: '', judul: '', artis: '', gambar: '' };   // lagu YouTube yang lagi diputar
+let ytAntrian = [];      // daftar videoId hasil pencarian (buat next/previous)
+let ytPlayer = null, ytSiap = false, ytMulai = 0;
 
 /* ---------- util ---------- */
 const detikKe = s => (isNaN(s) || s === Infinity) ? '0:00' : Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
@@ -550,13 +554,19 @@ function gambarGelombang(cv, progres, tinggi) {
     ctx.fillRect(i * lebar + 1, (H - tinggiBar) / 2, Math.max(1.5, lebar - 3), tinggiBar);
   }
 }
+function posisiSekarang() {
+  if (ytSekarang.id && ytPlayer && ytPlayer.getCurrentTime) {
+    try { return { pos: ytPlayer.getCurrentTime(), dur: ytPlayer.getDuration() || 0 }; } catch (e) {}
+  }
+  return { pos: AUDIO.currentTime || 0, dur: AUDIO.duration || 0 };
+}
 function perbaruiGelombang() {
-  const dur = AUDIO.duration || 0;
-  const p = dur ? AUDIO.currentTime / dur : 0;
+  const s = posisiSekarang();
+  const p = s.dur ? s.pos / s.dur : 0;
   gambarGelombang($('#gelombang'), p, 80);
   gambarGelombang($('#gelombang-besar'), p, 120);
-  $('#w-pos').textContent = detikKe(AUDIO.currentTime);
-  $('#w-lama').textContent = detikKe(dur);
+  $('#w-pos').textContent = detikKe(s.pos);
+  $('#w-lama').textContent = detikKe(s.dur);
 }
 
 /* ---------- render ---------- */
@@ -635,8 +645,12 @@ function renderPemutar() {
   $('#p-sampul').innerHTML = (l && l.gambar) ? '<img src="' + l.gambar + '">'
     : (ytAktif && ytSekarang.gambar ? '<img src="' + ytSekarang.gambar + '">' : (ytAktif ? '▶' : '♪'));
   $('#p-sampul').style.background = ((l && l.gambar) || (ytAktif && ytSekarang.gambar)) ? '' : (l ? acakWarna(l.id) : '');
-  $('#b-putar').textContent = main ? '⏸' : '▶';
-  $('#f-putar').textContent = main ? '⏸' : '▶';
+  let jalan = main;
+  if (!l && ytSekarang.id && ytPlayer && ytPlayer.getPlayerState) {
+    try { jalan = ytPlayer.getPlayerState() === 1; } catch (e) {}
+  }
+  $('#b-putar').textContent = jalan ? '⏸' : '▶';
+  $('#f-putar').textContent = jalan ? '⏸' : '▶';
   if (l) {
     $('#f-judul').textContent = l.judul;
     $('#f-artis').textContent = l.artis;
@@ -690,13 +704,25 @@ document.addEventListener('click', e => {
   if (e.target.closest('#kartu-buat')) { bukaTirai('nama'); return; }
 });
 $('#kotak-cari').addEventListener('input', render);
-$('#b-putar').addEventListener('click', () => { if (!lagu.length) return bukaTirai('berkas');
-  if (AUDIO.paused) AUDIO.play().catch(() => {}); else AUDIO.pause(); });
+const ytAktifSekarang = () => !lagu[putarSekarang] && !!ytSekarang.id;
+$('#b-putar').addEventListener('click', () => {
+  if (ytAktifSekarang()) {
+    if (!ytPlayer) return bukaPanggung(ytSekarang.id, ytSekarang.judul, ytSekarang.artis, ytSekarang.gambar);
+    const st = ytPlayer.getPlayerState ? ytPlayer.getPlayerState() : -1;
+    if (st === 1) ytPlayer.pauseVideo(); else ytPlayer.playVideo();
+    $('#panggung').classList.add('aktif');
+    return;
+  }
+  if (!lagu.length) return bukaTirai('berkas');
+  if (AUDIO.paused) AUDIO.play().catch(() => {}); else AUDIO.pause();
+});
+function maju() { if (ytAktifSekarang() && ytPlayer) ytPlayer.nextVideo(); else putarBerikut(); }
+function mundur() { if (ytAktifSekarang() && ytPlayer) ytPlayer.previousVideo(); else putarSebelum(); }
 $('#f-putar').addEventListener('click', () => $('#b-putar').click());
-$('#b-next').addEventListener('click', putarBerikut);
-$('#f-next').addEventListener('click', putarBerikut);
-$('#b-prev').addEventListener('click', putarSebelum);
-$('#f-prev').addEventListener('click', putarSebelum);
+$('#b-next').addEventListener('click', maju);
+$('#f-next').addEventListener('click', maju);
+$('#b-prev').addEventListener('click', mundur);
+$('#f-prev').addEventListener('click', mundur);
 $('#b-acak').addEventListener('click', () => { acak = !acak; susunAntrian(putarSekarang); simpanSetelan(); renderPemutar(); });
 $('#b-ulang').addEventListener('click', () => { ulang = (ulang + 1) % 3; renderPemutar(); });
 $('#b-suka').addEventListener('click', () => {
@@ -724,9 +750,13 @@ $('#aksi-simpan-nama').addEventListener('click', () => {
   simpanSetelan(); $('#tirai').classList.remove('aktif'); render();
 });
 $('#gelombang').addEventListener('click', e => {
-  if (!AUDIO.duration) return;
+  const s = posisiSekarang();
+  if (!s.dur) return;
   const r = e.target.getBoundingClientRect();
-  AUDIO.currentTime = (e.clientX - r.left) / r.width * AUDIO.duration;
+  const detik = (e.clientX - r.left) / r.width * s.dur;
+  if (ytAktifSekarang() && ytPlayer && ytPlayer.seekTo) { try { ytPlayer.seekTo(detik, true); } catch (er) {} }
+  else AUDIO.currentTime = detik;
+  perbaruiGelombang();
 });
 let timerTidur = null;
 $('#b-timer').addEventListener('click', () => {
@@ -781,14 +811,44 @@ async function cariYT() {
 }
 function bukaPanggung(id, judul, artis, gambar) {
   ytSekarang = { id: id, judul: judul || '', artis: artis || '', gambar: gambar || '' };
-  renderPemutar();                                   // bar bawah ikut nampilin lagunya
-  $('#yt-frame').src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0';
+  renderPemutar();
+  ytAntrian = $$('#yt-hasil [data-yt]').map(el => el.dataset.yt);
+  ytMulai = Math.max(0, ytAntrian.indexOf(id));
   $('#panggung-buka').onclick = () => window.open('https://music.youtube.com/watch?v=' + id, '_blank');
   $('#panggung').classList.add('aktif');
+  siapkanPemutarYT(() => {
+    if (!ytPlayer) return;
+    if (ytAntrian.length > 1) ytPlayer.loadPlaylist(ytAntrian, ytMulai);
+    else ytPlayer.loadVideoById(id);
+    ytPlayer.playVideo();
+  });
 }
+/* pemutar resmi YouTube (IFrame API) — dipakai buat next/previous/progress */
+function siapkanPemutarYT(setelahSiap) {
+  if (ytSiap) { setelahSiap(); return; }
+  const buat = () => {
+    ytPlayer = new YT.Player('yt-frame', {
+      width: '100%', height: '100%',
+      playerVars: { rel: 0, playsinline: 1 },
+      events: {
+        onReady: () => { ytSiap = true; penandaYt = setInterval(() => { if (ytSekarang.id) perbaruiGelombang(); }, 700); setelahSiap(); },
+        onStateChange: (e) => {
+          if (e.data === YT.PlayerState.PLAYING || e.data === YT.PlayerState.PAUSED) {
+            const d = ytPlayer.getVideoData ? ytPlayer.getVideoData() : null;
+            if (d && d.title) { ytSekarang.judul = d.title; ytSekarang.artis = d.author || ytSekarang.artis; }
+            renderPemutar();
+          }
+        }
+      }
+    });
+  };
+  if (window.YT && window.YT.Player) buat();
+  else { window.onYouTubeIframeAPIReady = buat; }
+}
+let penandaYt = null;
 function tutupPanggung() {
   $('#panggung').classList.remove('aktif');
-  $('#yt-frame').src = '';
+  if (ytPlayer && ytPlayer.stopVideo) { try { ytPlayer.stopVideo(); } catch (e) {} }
 }
 $('#yt-tombol').addEventListener('click', cariYT);
 $('#yt-kata').addEventListener('keydown', e => { if (e.key === 'Enter') cariYT(); });
