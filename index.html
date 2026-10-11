@@ -172,9 +172,11 @@ img{display:block}
 .yt-cari button{background:linear-gradient(135deg,var(--ungu2),var(--pink));color:#fff;border-radius:999px;
   padding:0 22px;font-weight:700}
 .yt-info{color:var(--lembut);font-size:12.5px;margin:0 0 14px}
-.panggung{position:fixed;inset:0;z-index:90;background:rgba(5,0,12,.88);display:none;
-  flex-direction:column;align-items:center;justify-content:center;padding:18px;gap:14px}
-.panggung.aktif{display:flex}
+/* ponytail: pemutar YouTube ditaruh di luar layar — audionya jalan, videonya nggak kelihatan.
+   Catatan: ini menyembunyikan player (di luar aturan YouTube). Kalau kena blokir,
+   balikin ke tampilan terlihat: ganti .panggung jadi position:fixed;inset:0 (sheet). */
+.panggung{position:fixed;left:-9999px;top:0;width:320px;height:240px;overflow:hidden;opacity:.01;
+  pointer-events:none;z-index:1;display:block}
 .panggung #yt-frame, .panggung #yt-frame iframe{width:min(960px,94vw);aspect-ratio:16/9;border:0;
   border-radius:16px;background:#000;display:block}
 .panggung .tutup2{align-self:center;background:var(--panel);border:1px solid var(--garis);border-radius:999px;
@@ -812,7 +814,7 @@ async function cariLagu(kata) {
     $('#semua').innerHTML = '<div class="kosong"><b>Server API belum nyala ✗</b>Tekan tombol Set API ✓</div>';
   }
 }
-const ytAktifSekarang = () => !lagu[putarSekarang] && !!ytSekarang.id;
+const ytAktifSekarang = () => !!ytSekarang.id;
 $('#b-putar').addEventListener('click', () => {
   if (ytAktifSekarang()) {
     if (!ytPlayer) return bukaPanggung(ytSekarang.id, ytSekarang.judul, ytSekarang.artis, ytSekarang.gambar);
@@ -843,9 +845,9 @@ $('#sh-prev').addEventListener('click', mundur);
 $('#sh-next').addEventListener('click', maju);
 $('#sh-putar').addEventListener('click', () => $('#b-putar').click());
 $('#b-penuh').addEventListener('click', () => {
-  if (ytSekarang.id) $('#panggung').classList.add('aktif');
-  else $('#penuh').classList.add('aktif');
+  if (lagu[putarSekarang] || ytSekarang.id) $('#penuh').classList.add('aktif');
 });
+$('.kiri').addEventListener('click', () => { if (lagu[putarSekarang] || ytSekarang.id) $('#penuh').classList.add('aktif'); });
 $('#penuh-tutup').addEventListener('click', () => $('#penuh').classList.remove('aktif'));
 $('#tombol-lanjut').addEventListener('click', () => {
   const i = lagu.findIndex(l => l.id === setelan.terakhir);
@@ -929,7 +931,7 @@ function bukaPanggung(id, judul, artis, gambar) {
   ytAntrian = lagu.map(x => x.id).filter(Boolean);
   ytMulai = Math.max(0, ytAntrian.indexOf(id));
   $('#panggung-buka').onclick = () => window.open('https://music.youtube.com/watch?v=' + id, '_blank');
-  $('#panggung').classList.add('aktif');
+  $('#penuh').classList.add('aktif');        // yang kelihatan: layar Now Playing kita
   siapkanPemutarYT(() => {
     if (!ytPlayer) return;
     if (ytAntrian.length > 1) ytPlayer.loadPlaylist(ytAntrian, ytMulai);
