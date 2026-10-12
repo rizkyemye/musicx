@@ -32,8 +32,8 @@
 <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4.5 9.5v-4a1 1 0 0 1 1-1h4M19.5 9.5v-4a1 1 0 0 0-1-1h-4M4.5 14.5v4a1 1 0 0 0 1 1h4M19.5 14.5v4a1 1 0 0 1-1 1h-4"/></symbol>
 <symbol id="i-close" viewBox="0 0 24 24"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></symbol>
 <symbol id="i-down" viewBox="0 0 24 24"><path d="M6.5 9.5 12 15l5.5-5.5"/></symbol>
-<symbol id="i-prev" viewBox="0 0 24 24"><path d="M18.5 6v12L9.5 12z"/><path d="M6 5.5v13"/></symbol>
-<symbol id="i-next" viewBox="0 0 24 24"><path d="M5.5 6v12L14.5 12z"/><path d="M18 5.5v13"/></symbol>
+<symbol id="i-prev" viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"/><path d="M6 6v12"/></symbol>
+<symbol id="i-next" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/><path d="M18 6v12"/></symbol>
 <symbol id="i-play" viewBox="0 0 24 24"><path d="M8.5 5.6v12.8L19 12z" fill="currentColor" stroke="none"/></symbol>
 <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9.5 5.5v13M14.5 5.5v13"/></symbol>
 <symbol id="i-lyrics" viewBox="0 0 24 24"><path d="M6.5 3.5h7.5l3.5 3.6V20.5H6.5z"/><path d="M14 3.6v3.8h3.6"/><path d="M9.5 12.5h5M9.5 16h3.5"/></symbol>
@@ -84,6 +84,12 @@
       <div class="bagian">
         <div class="kepala"><h2>Playlist untuk hari ini!</h2><button data-hal="pustaka">Lihat semua</button></div>
         <div class="kartu-baris" id="playlist-hari"></div>
+      </div>
+
+      <!-- playlist milik sendiri (di HP sidebar disembunyikan, jadi ditaruh sini) -->
+      <div class="bagian" id="bagian-playlist">
+        <div class="kepala"><h2>Playlist kamu</h2><button id="tombol-playlist-hp">＋ Buat playlist</button></div>
+        <div class="daftar" id="daftar-playlist-hp"></div>
       </div>
 
       <!-- rak-rak dari YouTube Music -->
@@ -163,6 +169,10 @@
   </div>
   <button class="tombol-lirik" id="f-lirik"><svg class="ik" aria-hidden="true"><use href="#i-lyrics"/></svg> Lirik</button>
   <div class="lirik" id="lirik-box"><div class="kosong2">Putar lagu dulu untuk lihat lirik</div></div>
+  <div class="antrian" id="antrian-box">
+    <div class="judul-antrian">Berikutnya</div>
+    <div id="antrian-isi"></div>
+  </div>
 </div>
 
 <!-- ============ MODAL ============ -->
@@ -412,7 +422,8 @@ function putarIndeks(i) {
   riwayat = [l.id].concat(riwayat.filter(x => x !== l.id)).slice(0, 12);
   setelan.terakhir = l.id;
   simpanSetelan();
-  bukaPanggung(l.id, l.judul, l.artis, l.gambar);   // semua lagu diputar dari YouTube
+  bukaPanggung(l.id, l.judul, l.artis, l.gambar);   // semua diputar dari YouTube
+  gambarAntrian();                                   // lagu berikutnya kelihatan
   render(); renderPemutar();
 }
 const putarBerikut = () => {
@@ -527,6 +538,17 @@ function tandaiLirik() {
   const p = $('#lirik-box p.aktif');
   if (p) p.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
+function gambarAntrian() {
+  const kotak = $('#antrian-isi'); if (!kotak) return;
+  const mulai = (typeof putarSekarang === 'number' ? putarSekarang : -1) + 1;
+  const sisa = lagu.slice(mulai, mulai + 15);
+  kotak.innerHTML = sisa.length
+    ? sisa.map((l, n) => '<button class="baris-antrian" data-putar="' + (mulai + n) + '">'
+        + '<span class="angka">' + (n + 1) + '</span>'
+        + '<div style="min-width:0"><b>' + esc(l.judul) + '</b><span>' + esc(l.artis) + '</span></div>'
+        + '</button>').join('')
+    : '<div class="kosong2">Nggak ada lagu berikutnya ✗ (ini lagu terakhir di daftar)</div>';
+}
 function render() {
   const q = $('#kotak-cari').value || '';
   const hasil = cari(q);
@@ -559,7 +581,7 @@ function render() {
   }
 
   // sidebar: playlist + riwayat
-  $('#daftar-playlist').innerHTML = playlist.map(p =>
+  $('#daftar-playlist').innerHTML = $('#daftar-playlist-hp').innerHTML = playlist.map(p =>
     '<button class="mini" data-playlist="' + esc(p.nama) + '"><span class="kotak"><svg class="ik" aria-hidden="true"><use href="#i-music"/></svg></span><b>' + esc(p.nama) + '</b></button>').join('');
   const terakhirArr = riwayat.map(id => lagu.findIndex(l => l.id === id)).filter(i => i >= 0).slice(0, 4);
   $('#riwayat').innerHTML = terakhirArr.map(i =>
@@ -729,6 +751,12 @@ $('#b-penuh').addEventListener('click', () => {
 });
 $('.kiri').addEventListener('click', () => { if (lagu[putarSekarang] || ytSekarang.id) $('#penuh').classList.add('aktif'); });
 $('#f-lirik').addEventListener('click', () => $('#penuh').classList.toggle('lirik'));
+$('#tombol-playlist-hp').addEventListener('click', () => buatPlaylist());
+// klik lagu di daftar "Berikutnya" -> langsung setel
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('.baris-antrian');
+  if (b && b.dataset.putar !== undefined) putarIndeks(Number(b.dataset.putar));
+});
 // Esc: tutup panel pencarian (atau layar Now Playing)
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
