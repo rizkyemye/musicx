@@ -10,237 +10,52 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <title>LizMusic — Pemutar Musik</title>
-<style>
-:root{
-  --bg:#0b0417; --bg2:#150a29; --panel:#1c0f33; --panel2:#241543;
-  --ungu:#8b5cf6; --ungu2:#a855f7; --pink:#ec4899; --teks:#f5f2ff; --lembut:#a79cc4;
-  --garis:rgba(255,255,255,.09); --r:18px; --bayang:0 18px 40px rgba(0,0,0,.45);
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--teks);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  font-size:14.5px;overflow:hidden}
-button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
-img{display:block}
-.kerangka{display:grid;grid-template-columns:250px 1fr;height:100vh;height:100svh}
-/* ---------- sidebar ---------- */
-.samping{background:var(--bg2);border-right:1px solid var(--garis);padding:22px 16px;overflow-y:auto}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;margin:2px 0 22px}
-.logo i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-style:normal;font-size:18px;
-  background:linear-gradient(135deg,var(--ungu2),var(--pink));box-shadow:0 8px 20px rgba(168,85,247,.35)}
-.nav{display:flex;flex-direction:column;gap:4px;margin-bottom:22px}
-.nav button{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:12px;color:var(--lembut);font-weight:600;text-align:left}
-.nav button.aktif{background:linear-gradient(90deg,rgba(168,85,247,.22),transparent);color:#fff}
-.nav button:hover{background:rgba(255,255,255,.05)}
-.judul-kecil{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--lembut);margin:18px 0 10px}
-.mini{display:flex;align-items:center;gap:11px;padding:7px 8px;border-radius:12px;width:100%;text-align:left}
-.mini:hover{background:rgba(255,255,255,.05)}
-.mini .kotak{width:40px;height:40px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center;
-  font-size:16px;background:linear-gradient(135deg,#3b1f63,#241543);overflow:hidden}
-.mini .kotak img{width:100%;height:100%;object-fit:cover}
-.mini b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
-.mini span{font-size:12px;color:var(--lembut)}
-/* ---------- isi ---------- */
-.isi{overflow-y:auto;padding:0 0 130px}
-.bar-atas{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:16px 26px;
-  background:rgba(11,4,23,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--garis)}
-.cari{position:relative;flex:1;max-width:520px;display:flex;align-items:center;gap:10px;background:var(--panel);
-  border:1px solid var(--garis);border-radius:999px;padding:11px 18px}
-.cari input{flex:1;background:none;border:0;color:var(--teks);font:inherit;outline:0}
-.cari input::placeholder{color:#6f6390}
-.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--ungu2),var(--pink));
-  display:grid;place-items:center;font-size:18px}
-.ikon-bulat{width:40px;height:40px;border-radius:50%;background:var(--panel);display:grid;place-items:center;
-  border:1px solid var(--garis);font-size:16px}
-.pad{padding:22px 26px 0}
-.hero{position:relative;margin:22px 26px 0;border-radius:24px;padding:26px;display:flex;align-items:center;gap:22px;
-  background:linear-gradient(120deg,#5b21b6 0%,#7c3aed 45%,#a855f7 100%);box-shadow:var(--bayang);overflow:hidden}
-.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:240px;height:240px;border-radius:50%;
-  background:rgba(255,255,255,.12)}
-.hero .teks{flex:1;min-width:0;position:relative}
-.hero .kecil{font-size:12.5px;opacity:.85;letter-spacing:.06em;text-transform:uppercase}
-.hero h1{margin:6px 0 4px;font-size:26px;font-weight:800}
-.hero p{margin:0 0 16px;opacity:.9}
-.tombol-putar{display:inline-flex;align-items:center;gap:9px;background:#fff;color:#2b0b52;border-radius:999px;
-  padding:12px 22px;font-weight:700;box-shadow:0 10px 24px rgba(0,0,0,.3)}
-.tombol-putar:active{transform:scale(.97)}
-.hero .sampul{width:112px;height:112px;border-radius:18px;flex:0 0 auto;position:relative;overflow:hidden;
-  background:rgba(0,0,0,.28);display:grid;place-items:center;font-size:38px}
-.hero .sampul img{width:100%;height:100%;object-fit:cover}
-.bagian{margin-top:30px}
-.bagian .kepala{display:flex;align-items:center;margin-bottom:14px}
-.bagian h2{margin:0;font-size:19px;font-weight:800}
-.bagian .kepala button{margin-left:auto;color:var(--lembut);font-size:13px;font-weight:600}
-.kartu-baris{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.kartu{background:var(--panel);border:1px solid var(--garis);border-radius:var(--r);padding:16px;
-  display:flex;align-items:center;gap:14px;text-align:left;transition:transform .15s ease,background .2s}
-.kartu:hover{background:var(--panel2);transform:translateY(-2px)}
-.kartu .sampul{width:64px;height:64px;border-radius:14px;flex:0 0 auto;overflow:hidden;display:grid;place-items:center;
-  font-size:26px;background:linear-gradient(135deg,#4c1d95,#831843)}
-.kartu .sampul img{width:100%;height:100%;object-fit:cover}
-.kartu b{display:block;font-size:14.5px;font-weight:700}
-.kartu span{font-size:12.5px;color:var(--lembut)}
-/* ponytail: kartu rak dibikin kecil (~160px, ala Spotify). Mau lebih besar? ubah 160px */
-.daftar{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
-.lagu{background:var(--panel);border:1px solid var(--garis);border-radius:var(--r);padding:10px;text-align:left;
-  transition:transform .15s ease,background .2s}
-.lagu:hover{background:var(--panel2);transform:translateY(-3px)}
-.lagu .sampul{width:100%;aspect-ratio:1;border-radius:14px;overflow:hidden;margin-bottom:11px;display:grid;place-items:center;
-  font-size:34px;background:linear-gradient(135deg,#4c1d95,#831843);position:relative}
-.lagu .sampul img{width:100%;height:100%;object-fit:cover}
-.lagu .sampul .badge{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);border-radius:999px;
-  padding:3px 9px;font-size:11px;font-weight:600}
-.lagu b{display:block;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lagu span{font-size:12.5px;color:var(--lembut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
-.lagu.ini{outline:2px solid var(--ungu2)}
-.bulat{border-radius:50%;text-align:center}
-.bulat .sampul{border-radius:50%}
-.kosong{border:1px dashed var(--garis);border-radius:var(--r);padding:34px;text-align:center;color:var(--lembut)}
-.kosong b{display:block;color:var(--teks);font-size:16px;margin-bottom:6px}
-/* ---------- pemutar bawah ---------- */
-.pemutar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(20,9,38,.93);
-  backdrop-filter:blur(18px);border-top:1px solid var(--garis);padding:12px 22px calc(12px + env(safe-area-inset-bottom));
-  display:grid;grid-template-columns:minmax(180px,1fr) 2fr minmax(140px,1fr);align-items:center;gap:18px}
-.kiri{display:flex;align-items:center;gap:12px;min-width:0}
-.kiri .sampul{width:54px;height:54px;border-radius:12px;flex:0 0 auto;overflow:hidden;display:grid;place-items:center;
-  font-size:22px;background:linear-gradient(135deg,#4c1d95,#831843)}
-.kiri .sampul img{width:100%;height:100%;object-fit:cover}
-.kiri b{display:block;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kiri span{font-size:12.5px;color:var(--lembut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
-.tengah{display:flex;flex-direction:column;align-items:center;gap:8px}
-.kontrol{display:flex;align-items:center;gap:16px}
-.kontrol button{font-size:17px;opacity:.85}
-.kontrol button:hover{opacity:1}
-.kontrol .utama{width:46px;height:46px;border-radius:50%;background:#fff;color:#1a0b2e;display:grid;place-items:center;
-  font-size:19px;box-shadow:0 8px 20px rgba(0,0,0,.35)}
-.kontrol .utama:active{transform:scale(.95)}
-.kontrol button.nyal{{color:var(--pink) !important;opacity:1}}
-.kanvas-baris{width:100%;display:flex;align-items:center;gap:12px}
-.kanvas-baris span{font-size:11.5px;color:var(--lembut);font-variant-numeric:tabular-nums;min-width:34px;text-align:center}
-#gelombang{flex:1;height:38px;cursor:pointer;display:block}
-.kanan{display:flex;align-items:center;gap:14px;justify-content:flex-end}
-.kanan input[type=range]{width:90px;accent-color:var(--ungu2)}
-/* ---------- layar penuh ---------- */
-.penuh{position:fixed;inset:0;z-index:60;background:linear-gradient(160deg,#1b0a33,#0b0417 70%);display:none;
-  flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center}
-.penuh.aktif{display:flex}
-.penuh .tutup{position:absolute;top:18px;left:20px;font-size:20px}
-.penuh .sampul{width:min(300px,64vw);aspect-ratio:1;border-radius:24px;overflow:hidden;margin-bottom:26px;
-  box-shadow:var(--bayang);display:grid;place-items:center;font-size:64px;background:linear-gradient(135deg,#4c1d95,#831843)}
-.penuh .sampul img{width:100%;height:100%;object-fit:cover}
-.penuh h2{margin:0 0 4px;font-size:23px}
-.penuh p{margin:0 0 22px;color:var(--lembut)}
-.penuh #gelombang-besar{width:min(560px,88vw);height:64px}
-.penuh .tombol-lirik{margin-top:16px;padding:9px 18px;border-radius:999px;background:var(--panel);
-  border:1px solid var(--garis);color:var(--teks);font:inherit;font-weight:600}
-.penuh .lirik{display:none;width:min(560px,92vw);max-height:54vh;overflow:auto;margin-top:16px;padding:16px 10px;
-  border-radius:18px;background:rgba(255,255,255,.04);border:1px solid var(--garis)}
-.penuh.lirik .lirik{display:block}
-.penuh.lirik .sampul,.penuh.lirik #gelombang-besar{display:none}
-.penuh .lirik p{margin:0 0 10px;font-size:15px;line-height:1.5;color:#a894c9;transition:color .18s,transform .18s}
-.penuh .lirik p.aktif{color:#fff;font-weight:700;transform:scale(1.04)}
-/* ---------- modal ---------- */
-.tirai{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px}
-.tirai.aktif{display:flex}
-.tirai .kotak{background:var(--panel);border:1px solid var(--garis);border-radius:22px;padding:24px;max-width:430px;width:100%}
-.tirai h3{margin:0 0 6px;font-size:18px}
-.tirai p{margin:0 0 18px;color:var(--lembut);font-size:13.5px}
-.tirai input{width:100%;padding:13px 15px;border-radius:12px;border:1px solid var(--garis);background:var(--bg2);
-  color:var(--teks);font:inherit;margin-bottom:14px}
-.tirai .aksi{display:flex;gap:10px}
-.tirai .aksi button{flex:1;padding:13px;border-radius:12px;font-weight:700}
-.tirai .aksi .utama{background:linear-gradient(135deg,var(--ungu2),var(--pink));color:#fff}
-.tirai .aksi .biasa{background:var(--bg2);border:1px solid var(--garis)}
-/* ---------- nav bawah (HP) + mini ---------- */
-.nav-bawah{display:none}
-/* hasil pencarian instan (dropdown) */
-.dd{position:absolute;left:0;right:0;top:calc(100% + 10px);background:var(--panel);border:1px solid var(--garis);
-  border-radius:16px;box-shadow:var(--bayang);max-height:62vh;overflow:auto;display:none;z-index:120;padding:6px}
-.dd.aktif{display:block}
-.dd button{display:flex;align-items:center;gap:12px;width:100%;padding:9px 10px;border-radius:12px;text-align:left}
-.dd button:hover,.dd button.pilih{background:rgba(255,255,255,.07)}
-.dd img{width:46px;height:46px;border-radius:10px;object-fit:cover;flex:0 0 auto;background:#2a1846}
-.dd b{display:block;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dd span{font-size:12.5px;color:var(--lembut);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dd .kosong2{padding:14px;color:var(--lembut);font-size:13px;text-align:center}
-@media (max-width: 900px){
-  body{overflow:auto}
-  .kerangka{grid-template-columns:1fr;height:auto;min-height:100svh}
-  .samping{display:none}
-  .isi{padding:0 0 190px}
-  .pad,.bar-atas{padding-left:16px;padding-right:16px}
-  .hero{margin:16px;padding:20px;gap:14px}
-  .hero .sampul{width:84px;height:84px;font-size:28px}
-  .hero h1{font-size:20px}
-  .kartu-baris{grid-template-columns:1fr;gap:10px}
-  .daftar{grid-template-columns:repeat(2,1fr);gap:12px}
-  .pemutar{grid-template-columns:1fr;gap:9px;padding:10px 14px calc(74px + env(safe-area-inset-bottom))}
-  .pemutar .kanan{display:none}
-  .kiri .sampul{width:44px;height:44px}
-  #gelombang{height:26px}
-  .nav-bawah{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:70;background:rgba(20,9,38,.96);
-    backdrop-filter:blur(18px);border-top:1px solid var(--garis);padding:8px 6px env(safe-area-inset-bottom)}
-  .nav-bawah button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;
-    color:var(--lembut);font-weight:600;padding:6px 0}
-  .nav-bawah button .gbr{font-size:19px}
-  .nav-bawah button.aktif{color:var(--ungu2)}
-/* ---- tab YouTube ---- */
-.yt-cari{display:flex;gap:10px;margin-bottom:18px}
-.yt-cari input{flex:1;background:var(--panel);border:1px solid var(--garis);border-radius:999px;
-  padding:14px 20px;color:var(--teks);font:inherit;outline:0}
-.yt-cari button{background:linear-gradient(135deg,var(--ungu2),var(--pink));color:#fff;border-radius:999px;
-  padding:0 22px;font-weight:700}
-.yt-info{color:var(--lembut);font-size:12.5px;margin:0 0 14px}
-/* ponytail: pemutar YouTube ditaruh di luar layar — audionya jalan, videonya nggak kelihatan.
-   Catatan: ini menyembunyikan player (di luar aturan YouTube). Kalau kena blokir,
-   balikin ke tampilan terlihat: ganti .panggung jadi position:fixed;inset:0 (sheet). */
-.panggung{position:fixed;left:-9999px;top:0;width:320px;height:240px;overflow:hidden;opacity:.01;
-  pointer-events:none;z-index:1;display:block}
-.panggung #yt-frame, .panggung #yt-frame iframe{width:min(960px,94vw);aspect-ratio:16/9;border:0;
-  border-radius:16px;background:#000;display:block}
-.panggung .tutup2{align-self:center;background:var(--panel);border:1px solid var(--garis);border-radius:999px;
-  padding:11px 22px;font-weight:700}
-.panggung .tutup-x{position:absolute;top:16px;right:20px;font-size:22px}
-.panggung .kotak-putar{position:relative;width:min(960px,94vw)}
-.panggung .info{text-align:center;max-width:min(960px,94vw)}
-.panggung .info b{font-size:17px;display:block}
-.panggung .info span{font-size:13px;color:var(--lembut)}
-.panggung .kontrol-sheet{display:flex;align-items:center;gap:26px;justify-content:center}
-@media (max-width: 900px){
-  .panggung{align-items:stretch;justify-content:flex-end;padding:0;
-    background:linear-gradient(180deg,rgba(11,4,23,.99),#0b0417)}
-  .panggung .kotak-putar{background:#000;border-radius:14px 14px 0 0}
-  .panggung .info{background:linear-gradient(180deg,#1a0d33,#140826)}
-  .panggung .kontrol-sheet{background:#140826}
-  .panggung .tutup2{background:#140826;border:0;border-radius:0;width:100%;padding:14px 22px}
-  .panggung .tutup2::before{content:"";position:absolute}
-  .panggung .kotak-putar{width:100%}
-  .panggung #yt-frame, .panggung #yt-frame iframe{width:100%;border-radius:14px 14px 0 0;aspect-ratio:16/9}
-  .panggung .info{width:100%;padding:14px 16px 0}
-  .panggung .kontrol-sheet{padding:10px 0 calc(16px + env(safe-area-inset-bottom))}
-  .panggung .tutup-x{top:auto;right:12px;bottom:calc(100% - 34px);width:34px;height:34px;border-radius:50%;
-    background:rgba(0,0,0,.55);display:grid;place-items:center;font-size:16px}
-  .panggung .tutup2{margin-bottom:calc(14px + env(safe-area-inset-bottom))}
-  .dd{max-height:min(44vh,320px)}
-}
-}
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Righteous&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="gaya.css">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M4 10.6 12 4l8 6.6V20a1 1 0 0 1-1 1h-4.2v-6H9.2v6H5a1 1 0 0 1-1-1z"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.3"/><path d="M15.8 15.8 20.5 20.5"/></symbol>
+<symbol id="i-library" viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 1-2-2z"/><path d="M6 4v14"/><path d="M10 9h5M10 13h3"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.2s-7.2-4.7-7.2-9.6A4.2 4.2 0 0 1 12 7.4a4.2 4.2 0 0 1 7.2 3.2c0 4.9-7.2 9.6-7.2 9.6z"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-sort" viewBox="0 0 24 24"><path d="M8 4v16M8 20l-3-3M8 20l3-3M16 20V4M16 4l-3 3M16 4l3 3"/></symbol>
+<symbol id="i-music" viewBox="0 0 24 24"><path d="M9.5 17.5V6l9-1.8v11.3"/><circle cx="6.8" cy="17.6" r="2.6"/><circle cx="15.8" cy="15.5" r="2.6"/></symbol>
+<symbol id="i-headphones" viewBox="0 0 24 24"><path d="M5 14v-2.2a7 7 0 0 1 14 0V14"/><rect x="3.4" y="12.8" width="4.2" height="7.4" rx="1.8"/><rect x="16.4" y="12.8" width="4.2" height="7.4" rx="1.8"/></symbol>
+<symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M4 7h3.6l8.2 10H20"/><path d="M4 17h3.6l8.2-10H20"/><path d="M17.4 3.8 20.4 6.8l-3 3M17.4 14.2l3 3-3 3"/></symbol>
+<symbol id="i-repeat" viewBox="0 0 24 24"><path d="M6.5 8H17a3.2 3.2 0 0 1 3.2 3.2V12"/><path d="M17.6 5.2 20.6 8.2l-3 3"/><path d="M17.5 16H7a3.2 3.2 0 0 1-3.2-3.2V12"/><path d="M6.4 18.8 3.4 15.8l3-3"/></symbol>
+<symbol id="i-volume" viewBox="0 0 24 24"><path d="M5 10h3.2l4.3-3.7v11.4L8.2 14H5z"/><path d="M15.8 9.6a3.6 3.6 0 0 1 0 4.8M18.4 7.2a7.4 7.4 0 0 1 0 9.6"/></symbol>
+<symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13.6" r="7"/><path d="M12 10.4v3.2l2.4 1.8M9.4 3h5.2"/></symbol>
+<symbol id="i-expand" viewBox="0 0 24 24"><path d="M4.5 9.5v-4a1 1 0 0 1 1-1h4M19.5 9.5v-4a1 1 0 0 0-1-1h-4M4.5 14.5v4a1 1 0 0 0 1 1h4M19.5 14.5v4a1 1 0 0 1-1 1h-4"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M6.5 9.5 12 15l5.5-5.5"/></symbol>
+<symbol id="i-prev" viewBox="0 0 24 24"><path d="M18.5 6v12L9.5 12z"/><path d="M6 5.5v13"/></symbol>
+<symbol id="i-next" viewBox="0 0 24 24"><path d="M5.5 6v12L14.5 12z"/><path d="M18 5.5v13"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M8.5 5.6v12.8L19 12z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><path d="M9.5 5.5v13M14.5 5.5v13"/></symbol>
+<symbol id="i-lyrics" viewBox="0 0 24 24"><path d="M6.5 3.5h7.5l3.5 3.6V20.5H6.5z"/><path d="M14 3.6v3.8h3.6"/><path d="M9.5 12.5h5M9.5 16h3.5"/></symbol>
+<symbol id="i-repeat1" viewBox="0 0 24 24"><path d="M6.5 8H17a3.2 3.2 0 0 1 3.2 3.2V12"/><path d="M17.6 5.2 20.6 8.2l-3 3"/><path d="M17.5 16H7a3.2 3.2 0 0 1-3.2-3.2V12"/><path d="M6.4 18.8 3.4 15.8l3-3"/><path d="M12.4 11.4h1.2v4.2M12.4 15.6h2.4"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="10.5" rx="3"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V21M9 21h6"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.6" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol>
+</defs></svg>
+
 <div class="kerangka">
 
   <!-- ============ SIDEBAR (desktop) ============ -->
   <aside class="samping">
-    <div class="logo"><i>♪</i> LizMusic</div>
+    <div class="logo"><i><svg class="ik" aria-hidden="true"><use href="#i-music"/></svg></i> LizMusic</div>
     <nav class="nav" id="nav-samping">
-      <button data-hal="beranda" class="aktif">🏠 Beranda</button>
-      <button data-hal="telusuri">🔎 Telusuri</button>
-      <button data-hal="pustaka">📚 Pustaka musik</button>
-      <button data-hal="suka">❤️ Lagu disukai</button>
+      <button data-hal="beranda" class="aktif"><svg class="ik" aria-hidden="true"><use href="#i-home"/></svg> Beranda</button>
+      <button data-hal="telusuri"><svg class="ik" aria-hidden="true"><use href="#i-search"/></svg> Telusuri</button>
+      <button data-hal="pustaka"><svg class="ik" aria-hidden="true"><use href="#i-library"/></svg> Pustaka musik</button>
+      <button data-hal="suka"><svg class="ik isi" aria-hidden="true"><use href="#i-heart"/></svg> Lagu disukai</button>
     </nav>
     <div class="judul-kecil">Playlist</div>
     <nav class="nav" id="daftar-playlist"></nav>
-    <button class="mini" id="tombol-playlist-baru"><span class="kotak">＋</span><b>Buat playlist baru</b></button>
+    <button class="mini" id="tombol-playlist-baru"><span class="kotak"><svg class="ik" aria-hidden="true"><use href="#i-plus"/></svg></span><b>Buat playlist baru</b></button>
     <div class="judul-kecil">Terakhir diputar</div>
     <div id="riwayat"></div>
   </aside>
@@ -248,9 +63,9 @@ img{display:block}
   <!-- ============ ISI ============ -->
   <main class="isi">
     <div class="bar-atas">
-      <div class="cari">🔎<input id="kotak-cari" placeholder="Ketik untuk mencari lagu, artis, atau album" autocomplete="off"><div class="dd" id="dd"></div></div>
-      <button class="ikon-bulat" id="tombol-urut" title="Urutkan">⇅</button>
-      <div class="avatar">🌸</div>
+      <div class="cari"><svg class="ik" aria-hidden="true"><use href="#i-search"/></svg><input id="kotak-cari" placeholder="Ketik untuk mencari lagu, artis, atau album" autocomplete="off"><div class="dd" id="dd"></div></div>
+      <button class="ikon-bulat" id="tombol-urut" title="Urutkan"><svg class="ik" aria-hidden="true"><use href="#i-sort"/></svg></button>
+      <div class="avatar"><svg class="ik" aria-hidden="true"><use href="#i-user"/></svg></div>
     </div>
 
     <div class="pad">
@@ -260,9 +75,9 @@ img{display:block}
           <div class="kecil">Lanjut dengerin</div>
           <h1 id="hero-judul">Memuat…</h1>
           <p id="hero-artis">Mengambil lagu dari YouTube Music</p>
-          <button class="tombol-putar" id="tombol-lanjut">▶ Putar</button>
+          <button class="tombol-putar" id="tombol-lanjut"><svg class="ik" aria-hidden="true"><use href="#i-play"/></svg> Putar</button>
         </div>
-        <div class="sampul" id="hero-sampul">♪</div>
+        <div class="sampul" id="hero-sampul"><svg class="ik" aria-hidden="true"><use href="#i-music"/></svg></div>
       </div>
 
       <!-- playlist -->
@@ -282,7 +97,7 @@ img{display:block}
 
       <!-- youtube (bagian dari Pustaka musik) -->
       <div class="bagian" id="bagian-yt">
-        <div class="kepala"><h2>🎧 YouTube Music</h2></div>
+        <div class="kepala"><h2><svg class="ik" aria-hidden="true"><use href="#i-headphones"/></svg> YouTube Music</h2></div>
         <div class="yt-cari">
           <input id="yt-kata" placeholder="Ketik judul lagu atau nama artis…">
           <button id="yt-tombol">Cari</button>
@@ -297,19 +112,19 @@ img{display:block}
 <!-- ============ PEMUTAR BAWAH ============ -->
 <div class="pemutar">
   <div class="kiri">
-    <div class="sampul" id="p-sampul">♪</div>
+    <div class="sampul" id="p-sampul"><svg class="ik" aria-hidden="true"><use href="#i-music"/></svg></div>
     <div style="min-width:0">
       <b id="p-judul">Belum ada lagu</b>
-      <span id="p-artis">Tekan ＋ buat nambah musik</span>
+      <span id="p-artis">Tekan <svg class="ik" aria-hidden="true"><use href="#i-plus"/></svg> buat nambah musik</span>
     </div>
   </div>
   <div class="tengah">
     <div class="kontrol">
-      <button id="b-acak" title="Acak">🔀</button>
-      <button id="b-prev" title="Sebelumnya">⏮</button>
-      <button class="utama" id="b-putar" title="Putar">▶</button>
-      <button id="b-next" title="Berikutnya">⏭</button>
-      <button id="b-ulang" title="Ulang">🔁</button>
+      <button id="b-acak" title="Acak"><svg class="ik" aria-hidden="true"><use href="#i-shuffle"/></svg></button>
+      <button id="b-prev" title="Sebelumnya"><svg class="ik" aria-hidden="true"><use href="#i-prev"/></svg></button>
+      <button class="utama" id="b-putar" title="Putar"><svg class="ik" aria-hidden="true"><use href="#i-play"/></svg></button>
+      <button id="b-next" title="Berikutnya"><svg class="ik" aria-hidden="true"><use href="#i-next"/></svg></button>
+      <button id="b-ulang" title="Ulang"><svg class="ik" aria-hidden="true"><use href="#i-repeat"/></svg></button>
     </div>
     <div class="kanvas-baris">
       <span id="w-pos">0:00</span>
@@ -318,35 +133,35 @@ img{display:block}
     </div>
   </div>
   <div class="kanan">
-    <button id="b-suka" title="Suka" style="font-size:17px">🤍</button>
-    <span>🔊</span>
+    <button id="b-suka" title="Suka" style="font-size:17px"><svg class="ik" aria-hidden="true"><use href="#i-heart"/></svg></button>
+    <span><svg class="ik" aria-hidden="true"><use href="#i-volume"/></svg></span>
     <input type="range" id="volume" min="0" max="100" value="90">
-    <button id="b-timer" title="Timer tidur" style="font-size:16px">⏱</button>
-    <button id="b-penuh" title="Layar penuh" style="font-size:16px">⛶</button>
+    <button id="b-timer" title="Timer tidur" style="font-size:16px"><svg class="ik" aria-hidden="true"><use href="#i-timer"/></svg></button>
+    <button id="b-penuh" title="Layar penuh" style="font-size:16px"><svg class="ik" aria-hidden="true"><use href="#i-expand"/></svg></button>
   </div>
 </div>
 
 <!-- ============ NAV BAWAH (HP) ============ -->
 <nav class="nav-bawah" id="nav-bawah">
-  <button data-hal="beranda" class="aktif"><span class="gbr">🏠</span>Beranda</button>
-  <button data-hal="telusuri"><span class="gbr">🔎</span>Telusuri</button>
-  <button data-hal="pustaka"><span class="gbr">📚</span>Pustaka</button>
-  <button data-hal="suka"><span class="gbr">❤️</span>Disukai</button>
+  <button data-hal="beranda" class="aktif"><span class="gbr"><svg class="ik" aria-hidden="true"><use href="#i-home"/></svg></span>Beranda</button>
+  <button data-hal="telusuri"><span class="gbr"><svg class="ik" aria-hidden="true"><use href="#i-search"/></svg></span>Telusuri</button>
+  <button data-hal="pustaka"><span class="gbr"><svg class="ik" aria-hidden="true"><use href="#i-library"/></svg></span>Pustaka</button>
+  <button data-hal="suka"><span class="gbr"><svg class="ik isi" aria-hidden="true"><use href="#i-heart"/></svg></span>Disukai</button>
 </nav>
 
 <!-- ============ LAYAR PENUH ============ -->
 <div class="penuh" id="penuh">
-  <button class="tutup" id="penuh-tutup">⌄</button>
-  <div class="sampul" id="f-sampul">♪</div>
+  <button class="tutup" id="penuh-tutup"><svg class="ik" aria-hidden="true"><use href="#i-down"/></svg></button>
+  <div class="sampul" id="f-sampul"><svg class="ik" aria-hidden="true"><use href="#i-music"/></svg></div>
   <h2 id="f-judul">—</h2>
   <p id="f-artis">—</p>
   <canvas id="gelombang-besar" width="1200" height="120"></canvas>
   <div class="kontrol" style="margin-top:22px">
-    <button id="f-prev">⏮</button>
-    <button class="utama" id="f-putar">▶</button>
-    <button id="f-next">⏭</button>
+    <button id="f-prev"><svg class="ik" aria-hidden="true"><use href="#i-prev"/></svg></button>
+    <button class="utama" id="f-putar"><svg class="ik" aria-hidden="true"><use href="#i-play"/></svg></button>
+    <button id="f-next"><svg class="ik" aria-hidden="true"><use href="#i-next"/></svg></button>
   </div>
-  <button class="tombol-lirik" id="f-lirik">📃 Lirik</button>
+  <button class="tombol-lirik" id="f-lirik"><svg class="ik" aria-hidden="true"><use href="#i-lyrics"/></svg> Lirik</button>
   <div class="lirik" id="lirik-box"><div class="kosong2">Putar lagu dulu untuk lihat lirik</div></div>
 </div>
 
@@ -370,13 +185,13 @@ img{display:block}
 </div>
 
 <div class="panggung" id="panggung">
-  <button class="tutup-x" id="panggung-tutup">✕</button>
+  <button class="tutup-x" id="panggung-tutup"><svg class="ik" aria-hidden="true"><use href="#i-close"/></svg></button>
   <div class="kotak-putar"><div id="yt-frame"></div></div>
   <div class="info"><b id="sh-judul">—</b><span id="sh-artis">—</span></div>
   <div class="kontrol-sheet">
-    <button id="sh-prev" style="font-size:20px">⏮</button>
-    <button class="utama" id="sh-putar" style="width:52px;height:52px;border-radius:50%;background:#fff;color:#1a0b2e;font-size:22px">▶</button>
-    <button id="sh-next" style="font-size:20px">⏭</button>
+    <button id="sh-prev" style="font-size:20px"><svg class="ik" aria-hidden="true"><use href="#i-prev"/></svg></button>
+    <button class="utama" id="sh-putar" style="width:52px;height:52px;border-radius:50%;background:#fff;color:#1a0b2e;font-size:22px"><svg class="ik" aria-hidden="true"><use href="#i-play"/></svg></button>
+    <button id="sh-next" style="font-size:20px"><svg class="ik" aria-hidden="true"><use href="#i-next"/></svg></button>
   </div>
   <button class="tutup2" id="panggung-buka">Buka di YouTube</button>
 </div>
@@ -563,7 +378,7 @@ async function muatOnline() {
         + isi.slice(0, 8).map(s => {
             const i = lagu.findIndex(l => l.id === s.id);
             return '<button class="lagu" data-putar="' + i + '">'
-              + '<div class="sampul">' + (s.gambar ? '<img src="' + esc(s.gambar) + '" loading="lazy" alt="">' : '♪')
+              + '<div class="sampul">' + (s.gambar ? '<img src="' + esc(s.gambar) + '" loading="lazy" alt="">' : '<svg class="ik" aria-hidden="true"><use href="#i-music"/></svg>')
               + (s.detik ? '<span class="badge">' + detikKe(s.detik) + '</span>' : '') + '</div>'
               + '<b>' + esc(s.judul) + '</b><span>' + esc(s.artis) + '</span></button>';
           }).join('')
@@ -644,14 +459,14 @@ function perbaruiGelombang() {
 /* ---------- render ---------- */
 function sampulHTML(l, kelas) {
   return '<div class="sampul ' + kelas + '" style="' + (l && l.gambar ? '' : (l ? 'background:' + acakWarna(l.id) : '')) + '">'
-    + (l && l.gambar ? '<img src="' + l.gambar + '" alt="">' : '♪') + '</div>';
+    + (l && l.gambar ? '<img src="' + l.gambar + '" alt="">' : '<svg class="ik" aria-hidden="true"><use href="#i-music"/></svg>') + '</div>';
 }
 function kartuLagu(i, l, ikon, sub) {
   return '<button class="lagu ' + (i === putarSekarang ? 'ini' : '') + '" data-putar="' + i + '">'
     + sampulHTML(l) + '<b>' + esc(l.judul) + '</b><span>' + esc(sub || l.artis) + '</span></button>';
 }
 function kartuBulat(nama, jumlah) {
-  return '<button class="lagu bulat"><div class="sampul" style="background:' + acakWarna(nama.length) + '">🎤</div>'
+  return '<button class="lagu bulat"><div class="sampul" style="background:' + acakWarna(nama.length) + '"><svg class="ik" aria-hidden="true"><use href="#i-mic"/></svg></div>'
     + '<b style="text-align:center">' + esc(nama) + '</b><span style="text-align:center">' + jumlah + ' lagu</span></button>';
 }
 function cari(teksCari) {
@@ -721,9 +536,9 @@ function render() {
   if (terakhir) {
     $('#hero-judul').textContent = terakhir.judul;
     $('#hero-artis').textContent = terakhir.artis;
-    $('#hero-sampul').innerHTML = terakhir.gambar ? '<img src="' + terakhir.gambar + '">' : '♪';
+    $('#hero-sampul').innerHTML = terakhir.gambar ? '<img src="' + terakhir.gambar + '">' : '<svg class="ik" aria-hidden="true"><use href="#i-music"/></svg>';
     $('#hero-sampul').style.background = terakhir.gambar ? '' : acakWarna(terakhir.id);
-    $('#tombol-lanjut').textContent = '▶ Lanjut dengerin';
+    $('#tombol-lanjut').innerHTML = '<svg class="ik" aria-hidden="true"><use href="#i-play"/></svg> Lanjut dengerin';
   }
 
   // playlist untuk hari ini
@@ -731,21 +546,21 @@ function render() {
     ? playlist.slice(0, 3).map(p =>
         '<button class="kartu" data-playlist="' + esc(p.nama) + '">' + sampulHTML(null)
         + '<div style="min-width:0"><b>' + esc(p.nama) + '</b><span>' + p.isi.length + ' lagu</span></div></button>').join('')
-    : '<button class="kartu" id="kartu-buat"><div class="sampul">＋</div><div><b>Buat playlist baru</b><span>Pisahin lagu sesuai mood kamu</span></div></button>';
+    : '<button class="kartu" id="kartu-buat"><div class="sampul"><svg class="ik" aria-hidden="true"><use href="#i-plus"/></svg></div><div><b>Buat playlist baru</b><span>Pisahin lagu sesuai mood kamu</span></div></button>';
 
   // hasil pencarian — muncul cuma kalau ada kata kunci
   const adaCari = q.trim().length > 0;
   $('#bagian-hasil').style.display = adaCari ? '' : 'none';
   if (adaCari) {
     $('#judul-hasil').textContent = 'Hasil pencarian: ' + q;
-    $('#semua').innerHTML = hasil.map(x => kartuLagu(x.i, x.l, '♪', x.l.artis)).join('')
+    $('#semua').innerHTML = hasil.map(x => kartuLagu(x.i, x.l, '<svg class="ik" aria-hidden="true"><use href="#i-music"/></svg>', x.l.artis)).join('')
       || '<div class="kosong"><b>Nggak ketemu ✗</b>Coba kata lain ✓</div>';
     $('#jumlah-lagu').textContent = hasil.length + ' lagu';
   }
 
   // sidebar: playlist + riwayat
   $('#daftar-playlist').innerHTML = playlist.map(p =>
-    '<button class="mini" data-playlist="' + esc(p.nama) + '"><span class="kotak">🎵</span><b>' + esc(p.nama) + '</b></button>').join('');
+    '<button class="mini" data-playlist="' + esc(p.nama) + '"><span class="kotak"><svg class="ik" aria-hidden="true"><use href="#i-music"/></svg></span><b>' + esc(p.nama) + '</b></button>').join('');
   const terakhirArr = riwayat.map(id => lagu.findIndex(l => l.id === id)).filter(i => i >= 0).slice(0, 4);
   $('#riwayat').innerHTML = terakhirArr.map(i =>
     '<button class="mini" data-putar="' + i + '">' + sampulHTML(lagu[i], 'kotak')
@@ -758,29 +573,29 @@ function renderPemutar() {
   $('#p-judul').textContent = l ? l.judul : (ytAktif ? ytSekarang.judul : 'Belum ada lagu');
   $('#p-artis').textContent = l ? l.artis : (ytAktif ? ytSekarang.artis + ' · diputar di player YouTube ✓' : 'Cari lagu di kolom pencarian ✓');
   $('#p-sampul').innerHTML = (l && l.gambar) ? '<img src="' + l.gambar + '">'
-    : (ytAktif && ytSekarang.gambar ? '<img src="' + ytSekarang.gambar + '">' : (ytAktif ? '▶' : '♪'));
+    : (ytAktif && ytSekarang.gambar ? '<img src="' + ytSekarang.gambar + '">' : (ytAktif ? '<svg class="ik" aria-hidden="true"><use href="#i-play"/></svg>' : '<svg class="ik" aria-hidden="true"><use href="#i-music"/></svg>'));
   $('#p-sampul').style.background = ((l && l.gambar) || (ytAktif && ytSekarang.gambar)) ? '' : (l ? acakWarna(l.id) : '');
   let jalan = main;
   if (!l && ytSekarang.id && ytPlayer && ytPlayer.getPlayerState) {
     try { jalan = ytPlayer.getPlayerState() === 1; } catch (e) {}
   }
-  $('#b-putar').textContent = jalan ? '⏸' : '▶';
-  $('#f-putar').textContent = jalan ? '⏸' : '▶';
+  $('#b-putar').innerHTML = jalan ? '<svg class="ik" aria-hidden="true"><use href="#i-pause"/></svg>' : '<svg class="ik" aria-hidden="true"><use href="#i-play"/></svg>';
+  $('#f-putar').innerHTML = jalan ? '<svg class="ik" aria-hidden="true"><use href="#i-pause"/></svg>' : '<svg class="ik" aria-hidden="true"><use href="#i-play"/></svg>';
   if (l) {
     $('#f-judul').textContent = l.judul;
     $('#f-artis').textContent = l.artis;
-    $('#f-sampul').innerHTML = l.gambar ? '<img src="' + l.gambar + '">' : '♪';
+    $('#f-sampul').innerHTML = l.gambar ? '<img src="' + l.gambar + '">' : '<svg class="ik" aria-hidden="true"><use href="#i-music"/></svg>';
     $('#f-sampul').style.background = l.gambar ? '' : acakWarna(l.id);
   }
   if ($('#sh-judul')) {
     $('#sh-judul').textContent = l ? l.judul : (ytSekarang.judul || '—');
     $('#sh-artis').textContent = l ? l.artis : (ytSekarang.artis || '—');
-    $('#sh-putar').textContent = (l ? main : jalan) ? '⏸' : '▶';
+    $('#sh-putar').innerHTML = (l ? main : jalan) ? '<svg class="ik" aria-hidden="true"><use href="#i-pause"/></svg>' : '<svg class="ik" aria-hidden="true"><use href="#i-play"/></svg>';
   }
-  $('#b-suka').textContent = l && disukai.has(l.id) ? '❤️' : '🤍';
+  $('#b-suka').innerHTML = l && disukai.has(l.id) ? '<svg class="ik isi" aria-hidden="true"><use href="#i-heart"/></svg>' : '<svg class="ik" aria-hidden="true"><use href="#i-heart"/></svg>';
   $('#b-acak').classList.toggle('nyal', acak);
   $('#b-ulang').classList.toggle('nyal', ulang > 0);
-  $('#b-ulang').textContent = ulang === 2 ? '🔂' : '🔁';
+  $('#b-ulang').innerHTML = ulang === 2 ? '<svg class="ik" aria-hidden="true"><use href="#i-repeat1"/></svg>' : '<svg class="ik" aria-hidden="true"><use href="#i-repeat"/></svg>';
   perbaruiGelombang();
 }
 
@@ -857,7 +672,7 @@ async function cariLagu(kata) {
     $('#bagian-hasil').style.display = '';
     $('#judul-hasil').textContent = 'Hasil pencarian: ' + kata;
     $('#jumlah-lagu').textContent = lagu.length + ' lagu';
-    $('#semua').innerHTML = lagu.map((l, i) => kartuLagu(i, l, '♪', l.artis + (l.album ? ' · ' + l.album : ''))).join('');
+    $('#semua').innerHTML = lagu.map((l, i) => kartuLagu(i, l, '<svg class="ik" aria-hidden="true"><use href="#i-music"/></svg>', l.artis + (l.album ? ' · ' + l.album : ''))).join('');
     tayangDd(lagu);
     return;
   }
@@ -873,7 +688,7 @@ async function cariLagu(kata) {
     cacheCari.set(kata.toLowerCase(), lagu);
     if (!lagu.length) { $('#semua').innerHTML = '<div class="kosong"><b>Nggak ketemu ✗</b>Coba kata lain ✓</div>'; return; }
     $('#jumlah-lagu').textContent = lagu.length + ' lagu';
-    $('#semua').innerHTML = lagu.map((l, i) => kartuLagu(i, l, '♪', l.artis + (l.album ? ' · ' + l.album : ''))).join('');
+    $('#semua').innerHTML = lagu.map((l, i) => kartuLagu(i, l, '<svg class="ik" aria-hidden="true"><use href="#i-music"/></svg>', l.artis + (l.album ? ' · ' + l.album : ''))).join('');
     tayangDd(lagu);
   } catch (e) {
     $('#semua').innerHTML = '<div class="kosong"><b>Server API belum nyala ✗</b>Tekan tombol Set API ✓</div>';
@@ -990,7 +805,7 @@ async function cariYT() {
     $('#yt-hasil').innerHTML = d.hasil.map(x =>
       '<button class="lagu" data-yt="' + esc(x.id) + '" data-yt-judul="' + esc(x.judul)
       + '" data-yt-artis="' + esc(x.artis) + '" data-yt-gambar="' + esc(x.gambar) + '">'
-      + '<div class="sampul">' + (x.gambar ? '<img src="' + esc(x.gambar) + '" alt="" loading="lazy">' : '▶️')
+      + '<div class="sampul">' + (x.gambar ? '<img src="' + esc(x.gambar) + '" alt="" loading="lazy">' : '<svg class="ik" aria-hidden="true"><use href="#i-play"/></svg>️')
       + (x.detik ? '<span class="badge">' + detikKe(x.detik) + '</span>' : '') + '</div>'
       + '<b>' + esc(x.judul) + '</b><span>' + esc(x.artis) + (x.album ? ' · ' + esc(x.album) : '') + '</span></button>').join('');
   } catch (e) {
