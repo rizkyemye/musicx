@@ -360,3 +360,43 @@ html,body{overflow-x:hidden;max-width:100%}
   .penuh .sampul{width:min(190px,48vw);margin-bottom:14px}
   .penuh .antrian{max-height:34vh}
 }
+
+/* ================= LIRIK ala SPOTIFY ================= */
+.penuh.lirik{justify-content:flex-start;padding-top:52px}
+/* ponytail: font-size di-transition (bukan transform) biar berasa kayak Spotify;
+   cuma ~15 baris jadi aman. Kalau berat di HP lama, ganti ke transform:scale. */
+.penuh .lirik{max-height:62vh;width:min(620px,94vw);padding:6px 2px;margin-top:14px;background:transparent;border:0;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 11%,#000 89%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0,#000 11%,#000 89%,transparent 100%)}
+.penuh .lirik p{margin:0;padding:8px 14px;font-size:18px;line-height:1.3;font-weight:800;letter-spacing:-.2px;
+  color:rgba(255,255,255,.38);text-align:center;opacity:.85;transform:scale(.985);
+  transition:color .28s ease,font-size .28s ease,opacity .28s ease,transform .28s ease}
+.penuh .lirik p.aktif{color:#fff;font-size:23.5px;opacity:1;transform:scale(1)}
+.penuh .lirik .kosong2{color:var(--lembut);font-size:14px;font-weight:600}
+@media (max-width: 900px){
+  .penuh.lirik{padding:42px 12px 20px}
+  .penuh .lirik{max-height:56vh;width:94vw}
+  .penuh .lirik p{font-size:17.5px}
+  .penuh .lirik p.aktif{font-size:22.5px}
+}
+
+/* ================= DAFTAR BERIKUTNYA: muncul dari tombol di sebelah next ================= */
+.penuh .antrian{display:none}
+.penuh.antrian-buka .antrian{display:block}
+#b-antrian{color:var(--lembut)}
+#b-antrian.aktif,#penuh.antrian-buka #b-antrian{color:var(--ungu2)}
+#penuh.antrian-buka #b-antrian .ik{stroke-width:2.1}
+.penuh .kontrol{flex-wrap:wrap}
+
+/* ================= TOMBOL LIRIK + DAFTAR DI BAR BAWAH (ala YT Music) ================= */
+.pemutar .kanan .ik{width:19px;height:19px}
+#f-lirik{color:var(--lembut)}
+#f-lirik.aktif,#penuh.lirik #f-lirik{color:var(--ungu2)}
+@media (max-width: 900px){
+  .pemutar{grid-template-columns:1fr auto;align-items:center;gap:4px 10px}
+  .pemutar .kiri{grid-column:1}
+  .pemutar .kanan{display:flex;grid-column:2;gap:6px;align-items:center}
+  .pemutar .kanan #volume,.pemutar .kanan span{display:none}     /* volume: pakai tombol HP aja */
+  .pemutar .kontrol{grid-column:1 / -1}
+  .pemutar .kanan button{width:34px;height:34px;background:transparent;border:0}
+}

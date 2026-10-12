@@ -39,6 +39,7 @@
 <symbol id="i-lyrics" viewBox="0 0 24 24"><path d="M6.5 3.5h7.5l3.5 3.6V20.5H6.5z"/><path d="M14 3.6v3.8h3.6"/><path d="M9.5 12.5h5M9.5 16h3.5"/></symbol>
 <symbol id="i-repeat1" viewBox="0 0 24 24"><path d="M6.5 8H17a3.2 3.2 0 0 1 3.2 3.2V12"/><path d="M17.6 5.2 20.6 8.2l-3 3"/><path d="M17.5 16H7a3.2 3.2 0 0 1-3.2-3.2V12"/><path d="M6.4 18.8 3.4 15.8l3-3"/><path d="M12.4 11.4h1.2v4.2M12.4 15.6h2.4"/></symbol>
 <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="10.5" rx="3"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V21M9 21h6"/></symbol>
+<symbol id="i-antrian" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h9"/><path d="M17.5 15.2v4.6l3.5-2.3z" fill="currentColor" stroke="none"/></symbol>
 <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.6" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol>
 </defs></svg>
 
@@ -143,6 +144,8 @@
     <span><svg class="ik" aria-hidden="true"><use href="#i-volume"/></svg></span>
     <input type="range" id="volume" min="0" max="100" value="90">
     <button id="b-timer" title="Timer tidur" style="font-size:16px"><svg class="ik" aria-hidden="true"><use href="#i-timer"/></svg></button>
+    <button id="f-lirik" title="Lirik"><svg class="ik" aria-hidden="true"><use href="#i-lyrics"/></svg></button>
+    <button id="b-antrian" title="Daftar berikutnya"><svg class="ik" aria-hidden="true"><use href="#i-antrian"/></svg></button>
     <button id="b-penuh" title="Layar penuh" style="font-size:16px"><svg class="ik" aria-hidden="true"><use href="#i-expand"/></svg></button>
   </div>
 </div>
@@ -167,7 +170,6 @@
     <button class="utama" id="f-putar"><svg class="ik" aria-hidden="true"><use href="#i-play"/></svg></button>
     <button id="f-next"><svg class="ik" aria-hidden="true"><use href="#i-next"/></svg></button>
   </div>
-  <button class="tombol-lirik" id="f-lirik"><svg class="ik" aria-hidden="true"><use href="#i-lyrics"/></svg> Lirik</button>
   <div class="lirik" id="lirik-box"><div class="kosong2">Putar lagu dulu untuk lihat lirik</div></div>
   <div class="antrian" id="antrian-box">
     <div class="judul-antrian">Berikutnya</div>
@@ -549,6 +551,25 @@ function gambarAntrian() {
         + '</button>').join('')
     : '<div class="kosong2">Nggak ada lagu berikutnya ✗ (ini lagu terakhir di daftar)</div>';
 }
+/* ---------- RADIO OTOMATIS: lagu habis -> ambil lagu serupa & lanjut sendiri ---------- */
+let radioSibuk = false;
+async function radioLanjut() {
+  if (radioSibuk || !ytSekarang.id) return;
+  radioSibuk = true;
+  try {
+    const r = await fetch(API_YT + '/terkait?id=' + encodeURIComponent(ytSekarang.id));
+    const d = await r.json();
+    const baru = (d.hasil || []).filter(x => x.id && !lagu.some(l => l.id === x.id));
+    if (!baru.length) return;                       // nggak ada lagu serupa -> berhenti aja
+    const penuhTerbuka = $('#penuh').classList.contains('aktif');
+    lagu = lagu.concat(baru);                       // tambahin ke daftar (dedupe di atas)
+    bukaPanggung(baru[0].id, baru[0].judul, baru[0].artis, baru[0].gambar);
+    putarSekarang = lagu.findIndex(l => l.id === baru[0].id);
+    if (!penuhTerbuka) $('#penuh').classList.remove('aktif');   // jangan maksa buka layar
+    gambarAntrian();
+  } catch (e) { /* radio gagal = bukan error fatal, lagu tinggal berhenti */ }
+  finally { radioSibuk = false; }
+}
 function render() {
   const q = $('#kotak-cari').value || '';
   const hasil = cari(q);
@@ -750,7 +771,8 @@ $('#b-penuh').addEventListener('click', () => {
   if (lagu[putarSekarang] || ytSekarang.id) $('#penuh').classList.add('aktif');
 });
 $('.kiri').addEventListener('click', () => { if (lagu[putarSekarang] || ytSekarang.id) $('#penuh').classList.add('aktif'); });
-$('#f-lirik').addEventListener('click', () => $('#penuh').classList.toggle('lirik'));
+$('#f-lirik').addEventListener('click', () => { $('#penuh').classList.add('aktif'); $('#penuh').classList.toggle('lirik'); });
+$('#b-antrian').addEventListener('click', () => { $('#penuh').classList.add('aktif'); $('#penuh').classList.toggle('antrian-buka'); });
 $('#tombol-playlist-hp').addEventListener('click', () => buatPlaylist());
 // klik lagu di daftar "Berikutnya" -> langsung setel
 document.addEventListener('click', (e) => {
@@ -867,6 +889,7 @@ function siapkanPemutarYT(setelahSiap) {
       events: {
         onReady: () => { ytSiap = true; penandaYt = setInterval(() => { if (ytSekarang.id) { perbaruiGelombang(); tandaiLirik(); } }, 700); setelahSiap(); },
         onStateChange: (e) => {
+          if (e.data === YT.PlayerState.ENDED) { radioLanjut(); return; }   // lagu habis -> radio
           if (e.data === YT.PlayerState.PLAYING || e.data === YT.PlayerState.PAUSED) {
             const d = ytPlayer.getVideoData ? ytPlayer.getVideoData() : null;
             if (d && d.title) { ytSekarang.judul = d.title; ytSekarang.artis = d.author || ytSekarang.artis; }
