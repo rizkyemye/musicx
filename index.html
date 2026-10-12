@@ -126,7 +126,12 @@
     </div>
   </div>
   <div class="tengah">
-    <div class="kontrol">
+    <div class="progres-baris" id="progres-baris">
+    <span id="t-pos">0:00</span>
+    <div class="progres" id="progres" title="Geser buat lompat"><i id="progres-isi"></i></div>
+    <span id="t-dur">0:00</span>
+  </div>
+  <div class="kontrol">
       <button id="b-acak" title="Acak"><svg class="ik" aria-hidden="true"><use href="#i-shuffle"/></svg></button>
       <button id="b-prev" title="Sebelumnya"><svg class="ik" aria-hidden="true"><use href="#i-prev"/></svg></button>
       <button class="utama" id="b-putar" title="Putar"><svg class="ik" aria-hidden="true"><use href="#i-play"/></svg></button>
@@ -424,6 +429,7 @@ function putarIndeks(i) {
   riwayat = [l.id].concat(riwayat.filter(x => x !== l.id)).slice(0, 12);
   setelan.terakhir = l.id;
   simpanSetelan();
+  if (!radioBenih) radioBenih = l.id;                // benih radio = lagu pertama yang dipilih
   bukaPanggung(l.id, l.judul, l.artis, l.gambar);   // semua diputar dari YouTube
   gambarAntrian();                                   // lagu berikutnya kelihatan
   render(); renderPemutar();
@@ -540,26 +546,42 @@ function tandaiLirik() {
   const p = $('#lirik-box p.aktif');
   if (p) p.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
+function perbaruiProgres() {
+  const isi = $('#progres-isi'); if (!isi) return;
+  const dur = (ytPlayer && ytPlayer.getDuration) ? (ytPlayer.getDuration() || 0) : 0;
+  const pos = (ytPlayer && ytPlayer.getCurrentTime) ? (ytPlayer.getCurrentTime() || 0) : 0;
+  isi.style.width = (dur ? Math.min(100, (pos / dur) * 100) : 0) + '%';
+  $('#t-pos').textContent = detikKe(pos);
+  $('#t-dur').textContent = detikKe(dur);
+}
 function gambarAntrian() {
   const kotak = $('#antrian-isi'); if (!kotak) return;
   const mulai = (typeof putarSekarang === 'number' ? putarSekarang : -1) + 1;
   const sisa = lagu.slice(mulai, mulai + 15);
-  kotak.innerHTML = sisa.length
+  const kini = lagu[putarSekarang];
+  const kepala = kini ? '<button class="baris-antrian sekarang" data-putar="' + putarSekarang + '">'
+    + '<span class="angka">▶</span><div style="min-width:0"><b>' + esc(kini.judul) + '</b>'
+    + '<span>Sedang diputar · ' + esc(kini.artis) + '</span></div></button>' : '';
+  kotak.innerHTML = kepala + (sisa.length
     ? sisa.map((l, n) => '<button class="baris-antrian" data-putar="' + (mulai + n) + '">'
         + '<span class="angka">' + (n + 1) + '</span>'
         + '<div style="min-width:0"><b>' + esc(l.judul) + '</b><span>' + esc(l.artis) + '</span></div>'
         + '</button>').join('')
-    : '<div class="kosong2">Nggak ada lagu berikutnya ✗ (ini lagu terakhir di daftar)</div>';
+    : '<div class="kosong2">Nggak ada lagu berikutnya ✗ (ini lagu terakhir di daftar)</div>');
 }
 /* ---------- RADIO OTOMATIS: lagu habis -> ambil lagu serupa & lanjut sendiri ---------- */
 let radioSibuk = false;
+let radioBenih = '';   // lagu PERTAMA yang dipilih -> semua radio ngarah ke sini
 async function radioLanjut() {
   if (radioSibuk || !ytSekarang.id) return;
   radioSibuk = true;
   try {
-    const r = await fetch(API_YT + '/terkait?id=' + encodeURIComponent(ytSekarang.id));
-    const d = await r.json();
-    const baru = (d.hasil || []).filter(x => x.id && !lagu.some(l => l.id === x.id));
+    const sudahAda = (arr) => (arr || []).filter(x => x.id && !lagu.some(l => l.id === x.id));
+    const benih = radioBenih || ytSekarang.id;
+    let baru = sudahAda(await (await fetch(API_YT + '/terkait?id=' + encodeURIComponent(benih))).json().then(d => d.hasil));
+    if (!baru.length) {   // ponytail: benih bisa habis -> lanjut dari lagu yang sedang main
+      baru = sudahAda(await (await fetch(API_YT + '/terkait?id=' + encodeURIComponent(ytSekarang.id))).json().then(d => d.hasil));
+    }
     if (!baru.length) return;                       // nggak ada lagu serupa -> berhenti aja
     const penuhTerbuka = $('#penuh').classList.contains('aktif');
     lagu = lagu.concat(baru);                       // tambahin ke daftar (dedupe di atas)
@@ -763,7 +785,12 @@ $('#b-suka').addEventListener('click', () => {
   disukai.has(l.id) ? disukai.delete(l.id) : disukai.add(l.id);
   simpanSetelan(); renderPemutar();
 });
-$('#volume').addEventListener('input', e => { AUDIO.volume = e.target.value / 100; setelan.vol = Number(e.target.value); simpanSetelan(); });
+$('#volume').addEventListener('input', e => {
+  const v = Number(e.target.value);
+  if (ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(v);   // <- ini yang bener: volume pemutar YouTube
+  if (window.AUDIO) AUDIO.volume = v / 100;
+  setelan.vol = v; simpanSetelan();
+});
 $('#sh-prev').addEventListener('click', mundur);
 $('#sh-next').addEventListener('click', maju);
 $('#sh-putar').addEventListener('click', () => $('#b-putar').click());
@@ -773,6 +800,13 @@ $('#b-penuh').addEventListener('click', () => {
 $('.kiri').addEventListener('click', () => { if (lagu[putarSekarang] || ytSekarang.id) $('#penuh').classList.add('aktif'); });
 $('#f-lirik').addEventListener('click', () => { $('#penuh').classList.add('aktif'); $('#penuh').classList.toggle('lirik'); });
 $('#b-antrian').addEventListener('click', () => { $('#penuh').classList.add('aktif'); $('#penuh').classList.toggle('antrian-buka'); });
+$('#progres').addEventListener('click', (e) => {           // klik di bar progres = lompat ke posisi itu
+  const r = e.currentTarget.getBoundingClientRect();
+  const dur = (ytPlayer && ytPlayer.getDuration) ? (ytPlayer.getDuration() || 0) : 0;
+  if (!dur || !ytPlayer.seekTo) return;
+  ytPlayer.seekTo(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur, true);
+  perbaruiProgres();
+});
 $('#tombol-playlist-hp').addEventListener('click', () => buatPlaylist());
 // klik lagu di daftar "Berikutnya" -> langsung setel
 document.addEventListener('click', (e) => {
@@ -887,7 +921,7 @@ function siapkanPemutarYT(setelahSiap) {
       width: '100%', height: '100%',
       playerVars: { rel: 0, playsinline: 1 },
       events: {
-        onReady: () => { ytSiap = true; penandaYt = setInterval(() => { if (ytSekarang.id) { perbaruiGelombang(); tandaiLirik(); } }, 700); setelahSiap(); },
+        onReady: () => { ytSiap = true; if (ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(setelan.vol != null ? setelan.vol : 90); penandaYt = setInterval(() => { if (ytSekarang.id) { perbaruiGelombang(); tandaiLirik(); perbaruiProgres(); } }, 700); setelahSiap(); },
         onStateChange: (e) => {
           if (e.data === YT.PlayerState.ENDED) { radioLanjut(); return; }   // lagu habis -> radio
           if (e.data === YT.PlayerState.PLAYING || e.data === YT.PlayerState.PAUSED) {

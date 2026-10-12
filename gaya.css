@@ -396,7 +396,25 @@ html,body{overflow-x:hidden;max-width:100%}
   .pemutar{grid-template-columns:1fr auto;align-items:center;gap:4px 10px}
   .pemutar .kiri{grid-column:1}
   .pemutar .kanan{display:flex;grid-column:2;gap:6px;align-items:center}
-  .pemutar .kanan #volume,.pemutar .kanan span{display:none}     /* volume: pakai tombol HP aja */
+  .pemutar .kanan #volume{display:block;width:64px}
+  .pemutar .kanan span{display:none}
   .pemutar .kontrol{grid-column:1 / -1}
   .pemutar .kanan button{width:34px;height:34px;background:transparent;border:0}
 }
+/* volume + lirik di bar: perjelas */
+.pemutar .kanan #volume{accent-color:var(--ungu2);height:4px}
+.penuh.lirik .lirik{display:block}
+
+/* ================= PROGRES + WAKTU (yang standar di web player) ================= */
+.progres-baris{display:none}
+@media (max-width: 900px){
+  .progres-baris{display:flex;align-items:center;gap:8px;grid-column:1 / -1;width:100%;margin:2px 0 4px}
+  .progres-baris span{font-size:11px;color:var(--lembut);font-variant-numeric:tabular-nums;min-width:32px;text-align:center}
+  .progres{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.13);overflow:hidden;cursor:pointer}
+  .progres i{display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,#a855f7,#ec4899);transition:width .25s linear}
+}
+
+.baris-antrian.sekarang b{color:#c084fc}
+.baris-antrian.sekarang .angka{color:#c084fc;font-size:11px}
+.baris-antrian.sekarang{background:rgba(168,85,247,.10);margin-bottom:4px}
